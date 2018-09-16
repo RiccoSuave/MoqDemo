@@ -21,6 +21,8 @@ namespace MoqDemoTests.Logic
             bool expectedIsValid, 
             double expectedHeightInInches)
         {
+            //He passes null because ConvertHeightTextToInches() and CreatePerson_Successful() methods do not access 
+            //the database isqlight even though it is a requirement for PersonProcessor
             PersonProcessor processor = new PersonProcessor(null);
 
             var actual = processor.ConvertHeightTextToInches(heightText);
@@ -75,6 +77,7 @@ namespace MoqDemoTests.Logic
         [Fact]
         public void LoadPeople_ValidCall()
         {
+            // We installed Moq when we created this test becuase LoadPeople() actually uses an instance of ISqliteDataAccess
             using (var mock = AutoMock.GetLoose())
             {
                 mock.Mock<ISqliteDataAccess>()
@@ -114,6 +117,8 @@ namespace MoqDemoTests.Logic
                 var cls = mock.Create<PersonProcessor>();
                 cls.SavePerson(person);
                 // There are other options besides Exactly(), such as AtLeastOnce, AtMostOnce, Between,...
+                //The line below verifies that the SaveData() method was called exactly once. We do this because
+                //SaveData() does not return anything for use to compare with the expected, so we have to do it this way
                 mock.Mock<ISqliteDataAccess>().Verify(x => x.SaveData(person, sql), Times.Exactly(1));
             }
 
